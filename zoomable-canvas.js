@@ -10,9 +10,9 @@ window.requestAnimFrame = (function(){
           };
 })();
 
-var IC = {}; // namespace
+var ZTC = {}; // namespace (Zoomable Text Canvas)
 
-IC.data = [{
+ZTC.data = [{
     x : 0,
     y : 0,
     z : 1,
@@ -29,7 +29,7 @@ IC.data = [{
     t : 'world!'
 }];
 
-IC.init = function(){
+ZTC.init = function(){
     var c = document.getElementById('c');
     var ctx = this.context = c.getContext('2d');
 
@@ -51,7 +51,7 @@ IC.init = function(){
         // fixed point zoom
         var zoom = Math.pow(1.1, -delta); // delta always 1/-1?
         var x = event.clientX - c.offsetLeft, y = event.clientY - c.offsetTop;
-        IC.fpZoom(zoom, x, y);
+        ZTC.fpZoom(zoom, x, y);
     }).bind('mousedown', function(event){
         dd = true;
         x0 = event.clientX;
@@ -74,9 +74,9 @@ IC.init = function(){
 };
 
 
-IC.draw = function(){
+ZTC.draw = function(){
     // no 'this' in this function, it's called by requestAnimFrame
-    var ctx = IC.context, vp = IC.viewport;
+    var ctx = ZTC.context, vp = ZTC.viewport;
 
     ctx.clearRect(0, 0, 800, 600);
     ctx.save();
@@ -87,7 +87,7 @@ IC.draw = function(){
     // debug
     ctx.strokeRect(0, 0, 800, 600);
 
-    IC.data.forEach(function(o){
+    ZTC.data.forEach(function(o){
         var zoom = o.z, zh = zoom*vp.h;
 
         if(30 < zh && zh < 6000){
@@ -102,10 +102,10 @@ IC.draw = function(){
     ctx.restore();
 
     // next frame
-    requestAnimFrame(IC.draw);
+    requestAnimFrame(ZTC.draw);
 };
 
-IC.fpZoom = function(zoom, x, y){
+ZTC.fpZoom = function(zoom, x, y){
     var vp = this.viewport;
     // convert fixed point in absolute coordinates
     var zoom_abs = vp.h/600;
@@ -122,6 +122,6 @@ IC.fpZoom = function(zoom, x, y){
 
 
 window.onload = function(){
-    IC.init();
-    IC.draw();
+    ZTC.init();
+    ZTC.draw();
 };
