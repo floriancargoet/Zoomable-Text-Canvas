@@ -1,4 +1,18 @@
-var data = [{
+// shim layer with setTimeout fallback
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame    ||
+          window.oRequestAnimationFrame      ||
+          window.msRequestAnimationFrame     ||
+          function( callback ){
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+var IC = {}; // namespace
+
+IC.data = [{
     x : 0,
     y : 0,
     z : 1,
@@ -15,14 +29,14 @@ var data = [{
     t : 'world!'
 }];
 
-window.onload = function(){
+IC.init = function(){
     var c = document.getElementById('c');
-    var ctx = c.getContext('2d');
-    
+    var ctx = this.context = c.getContext('2d');
+
     ctx.font = '32px sans-serif';
     ctx.textBaseline = 'top';
-    
-    var viewport = { // initial viewport
+
+    var vp = this.viewport = { // initial viewport
         x : 0,
         y : 0,
         w : 800,
@@ -30,56 +44,56 @@ window.onload = function(){
         dx : 0,
         dy : 0
     };
+
+    // mouse events
     var dd = false, x0, y0; // drag and drop
-    
     $(c).bind('mousewheel', function(event, delta, deltaX, deltaY) {
         // fixed point zoom
         var zoom = Math.pow(1.1, -delta); // delta always 1/-1?
         var x = event.clientX - c.offsetLeft, y = event.clientY - c.offsetTop;
-        fpZoom(viewport, zoom, x, y);
-        draw(ctx, viewport);
+        IC.fpZoom(zoom, x, y);
     }).bind('mousedown', function(event){
         dd = true;
         x0 = event.clientX;
         y0 = event.clientY;
     }).bind('mouseup', function(){
         dd = false;
-        viewport.x += viewport.dx;
-        viewport.y += viewport.dy;
-        viewport.dx = 0;
-        viewport.dy = 0;
+        vp.x += vp.dx;
+        vp.y += vp.dy;
+        vp.dx = 0;
+        vp.dy = 0;
     }).bind('mousemove', function(event){
         if(dd){
-            var zoom_abs = viewport.h/600,
+            var zoom_abs = vp.h/600,
                 dx = (x0 - event.clientX) * zoom_abs,
                 dy = (y0 - event.clientY) * zoom_abs;
-            viewport.dx = dx;
-            viewport.dy = dy;
-            draw(ctx, viewport);
+            vp.dx = dx;
+            vp.dy = dy;
         }
     });
-    
-    draw(ctx, viewport);
 };
 
-    
-function draw(ctx, viewport){
+
+IC.draw = function(){
+    // no 'this' in this function, it's called by requestAnimFrame
+    var ctx = IC.context, vp = IC.viewport;
+
     ctx.clearRect(0, 0, 800, 600);
     ctx.save();
-    var s = 600/viewport.h;
+    var s = 600/vp.h;
     ctx.scale(s, s);
-    ctx.translate(-viewport.x - viewport.dx, -viewport.y - viewport.dy);
-    
-    // debug 
+    ctx.translate(-vp.x - vp.dx, -vp.y - vp.dy);
+
+    // debug
     ctx.strokeRect(0, 0, 800, 600);
-    
-    data.forEach(function(o){
-        var zoom = o.z, zh = zoom*viewport.h;
-        
+
+    IC.data.forEach(function(o){
+        var zoom = o.z, zh = zoom*vp.h;
+
         //if(zh < 6000 && 6000 < 200*zh){
         if(30 < zh && zh < 6000){
             ctx.save();
-            ctx.translate(o.x, o.y)
+            ctx.translate(o.x, o.y);
             ctx.scale(1/zoom, 1/zoom);
             ctx.globalAlpha = Math.max(0, Math.min( zh/30 - 1 , 1));
             ctx.fillText(o.t, 0, 0);
@@ -87,17 +101,28 @@ function draw(ctx, viewport){
         }
     });
     ctx.restore();
-}    
 
-function fpZoom(viewport, zoom, x, y){
+    // next frame
+    requestAnimFrame(IC.draw);
+};
+
+IC.fpZoom = function(zoom, x, y){
+    var vp = this.viewport;
     // convert fixed point in absolute coordinates
-    var zoom_abs = viewport.h/600;
-    var x_abs = x * zoom_abs + viewport.x;
-    var y_abs = y * zoom_abs + viewport.y;
+    var zoom_abs = vp.h/600;
+    var x_abs = x * zoom_abs + vp.x;
+    var y_abs = y * zoom_abs + vp.y;
     // update viewport
-    viewport.w *= zoom;
-    viewport.h *= zoom;
-    zoom_abs = viewport.h/600;
-    viewport.x = x_abs - x * zoom_abs;
-    viewport.y = y_abs - y * zoom_abs;
-}
+    vp.w *= zoom;
+    vp.h *= zoom;
+    zoom_abs = vp.h/600;
+    vp.x = x_abs - x * zoom_abs;
+    vp.y = y_abs - y * zoom_abs;
+};
+
+
+
+window.onload = function(){
+    IC.init();
+    IC.draw();
+};
