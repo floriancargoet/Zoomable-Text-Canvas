@@ -90,7 +90,6 @@ IC.draw = function(){
     IC.data.forEach(function(o){
         var zoom = o.z, zh = zoom*vp.h;
 
-        //if(zh < 6000 && 6000 < 200*zh){
         if(30 < zh && zh < 6000){
             ctx.save();
             ctx.translate(o.x, o.y);
