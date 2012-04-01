@@ -9,9 +9,9 @@ var data = [{
     z : 16,
     t : 'fantastic'
 },{
-    x : 71,
-    y : 16,
-    z : 32,
+    x : 71.1,
+    y : 16.1,
+    z : 256,
     t : 'world!'
 }];
 
@@ -52,12 +52,15 @@ function draw(ctx, viewport){
     ctx.strokeRect(0, 0, 800, 600);
     
     data.forEach(function(o){
-        ctx.save();
         var zoom = o.z;
-        ctx.translate(o.x, o.y)
-        ctx.scale(1/zoom, 1/zoom);
-        ctx.fillText(o.t, 0, 0);
-        ctx.restore();
+        
+        if(zoom < 6000/viewport.h && 6000/viewport.h < 200*zoom){
+            ctx.save();
+            ctx.translate(o.x, o.y)
+            ctx.scale(1/zoom, 1/zoom);
+            ctx.fillText(o.t, 0, 0);
+            ctx.restore();
+        }
     });
     ctx.restore();
 }    
