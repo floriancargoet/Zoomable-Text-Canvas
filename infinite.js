@@ -31,7 +31,7 @@ window.onload = function(){
     
     $(c).bind('mousewheel', function(event, delta, deltaX, deltaY) {
         // fixed point zoom
-        var zoom = Math.pow(1.2, -delta); // delta always 1/-1?
+        var zoom = Math.pow(1.1, -delta); // delta always 1/-1?
         var x = event.clientX - c.offsetLeft, y = event.clientY - c.offsetTop;
         fpZoom(viewport, zoom, x, y);
         draw(ctx, viewport);
@@ -52,12 +52,14 @@ function draw(ctx, viewport){
     ctx.strokeRect(0, 0, 800, 600);
     
     data.forEach(function(o){
-        var zoom = o.z;
+        var zoom = o.z, zh = zoom*viewport.h;
         
-        if(zoom < 6000/viewport.h && 6000/viewport.h < 200*zoom){
+        //if(zh < 6000 && 6000 < 200*zh){
+        if(30 < zh && zh < 6000){
             ctx.save();
             ctx.translate(o.x, o.y)
             ctx.scale(1/zoom, 1/zoom);
+            ctx.globalAlpha = Math.max(0, Math.min( zh/30 - 1 , 1));
             ctx.fillText(o.t, 0, 0);
             ctx.restore();
         }
